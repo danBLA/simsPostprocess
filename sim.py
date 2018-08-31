@@ -82,7 +82,7 @@ def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict):
 
 def create_forces_derivative(dir, force, set_zrot, set_solids, zrot_solids_dict):
     for zrot,i in zip(set_zrot, range(len(set_zrot))):
-        for solid,j in zip(set_solids,range(len(set_solids)-1)):
+        for solid,j in zip(set_solids,range(len(set_solids))):
             zrotelementsolid = zrot_solids_dict[zrot][solid]
 
             avg_dircoord_name = "avg_"+dir
