@@ -67,7 +67,7 @@ def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict):
         for solid,j in zip(set_solids,range(len(set_solids))):
             zrotelementsolid = zrot_solids_dict[zrot][solid]
             solidlist = simulation_dict[solid]
-            sorted_list_zrot = sorted([(sim.yrot,sim.force) for sim in solidlist if sim.has_rot(z=zrot)])
+            sorted_list_zrot = sorted([(sim.yrot, sim.force) for sim in solidlist if sim.has_rot(z=zrot)])
             yrot = np.array([a[0] for a in sorted_list_zrot])
             fx = np.array([a[1][0] for a in sorted_list_zrot])
             fy = np.array([a[1][1] for a in sorted_list_zrot])
@@ -81,8 +81,8 @@ def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict):
     return zrot_solids_dict
 
 def create_forces_derivative(dir, force, set_zrot, set_solids, zrot_solids_dict):
-    for zrot,i in zip(set_zrot, range(len(set_zrot))):
-        for solid,j in zip(set_solids,range(len(set_solids))):
+    for zrot in set_zrot:
+        for solid in set_solids:
             zrotelementsolid = zrot_solids_dict[zrot][solid]
 
             avg_dircoord_name = "avg_"+dir
@@ -92,9 +92,9 @@ def create_forces_derivative(dir, force, set_zrot, set_solids, zrot_solids_dict)
                 avg_dircoord = zrotelementsolid[avg_dircoord_name]
                 delta_dircoord = zrotelementsolid[delta_dircoord_name]
             except KeyError:
-                dircoord = zrotelementsolid[dir]
-                avg_dircoord = (dircoord[:-1] + dircoord[1:]) / 2
-                delta_dircoord = dircoord[1:] - dircoord[:-1]
+                dircoord = np.array(zrotelementsolid[dir])
+                avg_dircoord = np.divide(np.add(dircoord[:-1], dircoord[1:]), np.full((len(dircoord)-1, 1), 2.0))
+                delta_dircoord = np.subtract(dircoord[1:], dircoord[:-1])
                 zrotelementsolid[avg_dircoord_name] = avg_dircoord
                 zrotelementsolid[delta_dircoord_name] = delta_dircoord
 
@@ -103,7 +103,29 @@ def create_forces_derivative(dir, force, set_zrot, set_solids, zrot_solids_dict)
             try:
                 dforceddir = zrotelementsolid[dforceddir_name]
             except KeyError:
-                delta_force = forcearray[1:] - forcearray[:-1]
-                dforceddir = delta_force / delta_dircoord
+                delta_force = np.subtract(forcearray[1:], forcearray[:-1])
+                dforceddir = np.divide(delta_force, delta_dircoord)
                 zrotelementsolid[dforceddir_name] = dforceddir
 
+def create_forces_zrot_derivative(force, set_zrot, set_solids, zrot_solids_dict):
+
+    assert len(set_zrot) == 2
+    dir = "yaw"
+
+    for solid in set_solids:
+        zrotelementsolid_0 = zrot_solids_dict[set_zrot[0]][solid]
+        zrotelementsolid_1 = zrot_solids_dict[set_zrot[1]][solid]
+
+        assert len(zrotelementsolid_0['lift']) == len(zrotelementsolid_1['lift'])
+
+        dforceddir_name = "D"+force+"D"+dir
+        forcearray_0 = zrotelementsolid_0[force]
+        forcearray_1 = zrotelementsolid_1[force]
+        try:
+            dforceddir_0 = zrotelementsolid_0[dforceddir_name]
+            dforceddir_1 = zrotelementsolid_1[dforceddir_name]
+        except KeyError:
+            delta_force = np.subtract(forcearray_1, forcearray_0)
+            dforceddir = np.divide(delta_force, np.full(len(forcearray_0),set_zrot[1]-set_zrot[0]))
+            zrotelementsolid_0[dforceddir_name] = dforceddir
+            zrotelementsolid_1[dforceddir_name] = dforceddir

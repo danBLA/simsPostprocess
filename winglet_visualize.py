@@ -58,6 +58,60 @@ def plot_lift_all(set_zrot, set_solids, zrot_solids_dict):
 
     plt.show()
 
+def plot_sideforce_all(set_zrot, set_solids, zrot_solids_dict):
+    """4 subplots with Fy """
+
+    fig = plt.figure()
+    subplot=0
+
+    for zrot,i in zip(set_zrot, range(len(set_zrot))):
+        linetype=linestyles[i]
+        subplot += 1
+        ax = plt.subplot(2,2,subplot)
+        print("* zrot: %s"%zrot)
+        for solid,j in zip(set_solids,range(len(set_solids))):
+            zrotelementsolid = zrot_solids_dict[zrot][solid]
+            linecolor = colors[j]
+            print("  * solid: %s" % solid)
+            ax.plot(zrotelementsolid['lift'], zrotelementsolid['fy'], label=solid, color=linecolor, linestyle=linetype)
+
+        ax.set_title("zrot: %s" % zrot)
+        ax.set_xlabel('Lift [°]')
+        ax.set_ylabel('Sideforce [dN]')
+        ax.legend(loc="best")
+        ax.margins(0.1)
+
+    subplot += 1
+    ax = plt.subplot(2,2,subplot)
+    for solid,j in zip(set_solids,range(len(set_solids))):
+        for zrot,i in zip(set_zrot,range(len(set_zrot))):
+            linetype=linestyles[i]
+            linecolor = colors[j]
+            zrotelement = zrot_solids_dict[zrot][solid]
+            ax.plot(zrotelement["lift"],zrotelement["fy"],label=solid,color=linecolor,linestyle=linetype)
+    ax.set_title("Sideforce overall")
+    ax.set_xlabel('Lift [°]')
+    ax.set_ylabel('Sideforce [dN]')
+    ax.margins(0.1)
+
+    subplot += 1
+    ax = plt.subplot(2,2,subplot)
+    for solid,j in zip(set_solids,range(len(set_solids))):
+        i=0
+        linetype=linestyles[i]
+        linecolor = colors[j]
+        zrotelement1 = zrot_solids_dict[set_zrot[1]][solid]
+        zrotelement0 = zrot_solids_dict[set_zrot[0]][solid]
+        delta_fz = zrotelement1['fy'] - zrotelement0['fy']
+        ax.plot(zrotelement["lift"],delta_fz,label=solid,color=linecolor,linestyle=linetype)
+
+    ax.set_title("Sideforce change (fy(zrot=-2) - fy(zrot=0)")
+    ax.set_xlabel('Lift [°]')
+    ax.set_ylabel('Sideforce change [dN]')
+    ax.margins(0.1)
+
+    plt.show()
+
 def plot_lift_winglet_proto_EM18(simulation_dict, set_zrot, set_solids, zrot_solids_dict):
     """4 subplots with Fz """
 
@@ -126,6 +180,73 @@ def plot_derivative_lift_all(set_zrot, set_solids, zrot_solids_dict):
     ax.set_title("Lift overall")
     ax.set_xlabel('Lift [°]')
     ax.set_ylabel('Lift [d(dN)/d(°)]')
+    ax.margins(0.1)
+
+    plt.show()
+
+def plot_derivative_sideforce_all(set_zrot, set_solids, zrot_solids_dict):
+    """4 subplots with Fz """
+
+    fig = plt.figure()
+    subplot=0
+
+    sim.create_forces_derivative('lift', 'fy', set_zrot, set_solids, zrot_solids_dict)
+
+    for zrot,i in zip(set_zrot, range(len(set_zrot))):
+        linetype=linestyles[i]
+        subplot += 1
+        ax = plt.subplot(2,2,subplot)
+        print("* zrot: %s"%zrot)
+        for solid,j in zip(set_solids,range(len(set_solids))):
+            zrotelementsolid = zrot_solids_dict[zrot][solid]
+            linecolor = colors[j]
+            print("  * solid: %s" % solid)
+            ax.plot(zrotelementsolid['avg_lift'], zrotelementsolid['DfyDlift'], label=solid, color=linecolor, linestyle=linetype)
+
+        ax.set_title("zrot: %s" % zrot)
+        ax.set_xlabel('Lift [°]')
+        ax.set_ylabel('Sideforce [d(dN)/d(°)]')
+        ax.legend(loc="best")
+        ax.margins(0.1)
+
+    subplot += 1
+    ax = plt.subplot(2,2,subplot)
+    for solid,j in zip(set_solids,range(len(set_solids))):
+        for zrot,i in zip(set_zrot,range(len(set_zrot))):
+            linetype=linestyles[i]
+            linecolor = colors[j]
+            zrotelement = zrot_solids_dict[zrot][solid]
+            ax.plot(zrotelement["avg_lift"],zrotelement["DfyDlift"],label=solid,color=linecolor,linestyle=linetype)
+    ax.set_title("Sideforce overall")
+    ax.set_xlabel('Lift [°]')
+    ax.set_ylabel('Sideforce [d(dN)/d(°)]')
+    ax.margins(0.1)
+
+    plt.show()
+
+def plot_yaw_derivative_lift_all(set_zrot, set_solids, zrot_solids_dict):
+    """4 subplots with Fz """
+
+    fig = plt.figure()
+    subplot=0
+
+    sim.create_forces_zrot_derivative('fz', set_zrot, set_solids, zrot_solids_dict)
+
+    subplot += 1
+    ax = plt.subplot()
+    for solid,j in zip(set_solids,range(len(set_solids))):
+        zrot = set_zrot[0]
+        i = 0
+
+        linetype=linestyles[i]
+        linecolor = colors[j]
+        zrotelement = zrot_solids_dict[zrot][solid]
+        ax.plot(zrotelement["lift"], zrotelement["DfzDyaw"], label=solid, color=linecolor, linestyle=linetype)
+
+    ax.set_title("Lift-by-Yaw derivative")
+    ax.set_xlabel('Lift [°]')
+    ax.set_ylabel('d(Lift)/d(Yaw) [d(dN)/d(°)]')
+    ax.legend(loc="best")
     ax.margins(0.1)
 
     plt.show()

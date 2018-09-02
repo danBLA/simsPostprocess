@@ -56,8 +56,15 @@ print(set_zrot)
 zrot_solids_dict = sim.create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict)
 
 
+#wv.plot_sideforce_all(set_zrot,set_solids,zrot_solids_dict)
 #wv.plot_lift(simulation_dict,set_zrot,set_solids,zrot_solids_dict)
 #wv.plot_lift_winglet_proto_EM18(simulation_dict, set_zrot, set_solids, zrot_solids_dict)
 
 sim.create_forces_derivative('lift', 'fz', set_zrot, set_solids, zrot_solids_dict)
-wv.plot_derivative_lift_all(set_zrot, set_solids, zrot_solids_dict)
+sim.create_forces_derivative('lift', 'fy', set_zrot, set_solids, zrot_solids_dict)
+#wv.plot_derivative_lift_all(set_zrot, set_solids, zrot_solids_dict)
+#wv.plot_derivative_sideforce_all(set_zrot, set_solids, zrot_solids_dict)
+sim.create_forces_zrot_derivative('fz', set_zrot, set_solids, zrot_solids_dict)
+sim.create_forces_zrot_derivative('fy', set_zrot, set_solids, zrot_solids_dict)
+
+wv.plot_yaw_derivative_lift_all(set_zrot, set_solids, zrot_solids_dict)
