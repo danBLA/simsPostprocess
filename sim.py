@@ -107,6 +107,31 @@ def create_forces_derivative(dir, force, set_zrot, set_solids, zrot_solids_dict)
                 dforceddir = np.divide(delta_force, delta_dircoord)
                 zrotelementsolid[dforceddir_name] = dforceddir
 
+def create_dragforcelift_ratios(set_zrot, set_solids, zrot_solids_dict):
+    for zrot in set_zrot:
+        for solid in set_solids:
+            zrotelementsolid = zrot_solids_dict[zrot][solid]
+
+            try:
+                fz_by_fx = zrotelementsolid['fzBYfx']
+                fy_by_fx = zrotelementsolid['fyBYfx']
+                fyz_by_fx = zrotelementsolid['fyzBYfx']
+            except KeyError:
+                fx = zrotelementsolid['fx']
+                fy = zrotelementsolid['fy']
+                fz = zrotelementsolid['fz']
+                #fz_by_fx = np.abs(np.divide(fz, fx))
+                fz_by_fx = np.divide(fz, np.abs(fx))
+                #fy_by_fx = np.abs(np.divide(fy, fx))
+                fy_by_fx = np.divide(fy, np.abs(fx))
+                #sum_of_squares = np.add(np.square(fy), np.square(fz))
+                sum_of_squares = np.add(np.square(fy), np.square(fz))
+                fyz_by_fx = np.divide(np.sqrt(sum_of_squares), np.abs(fx))
+                zrotelementsolid['fzBYfx'] = fz_by_fx
+                zrotelementsolid['fyBYfx'] = fy_by_fx
+                zrotelementsolid['fyzBYfx']= fyz_by_fx
+
+
 def create_forces_zrot_derivative(force, set_zrot, set_solids, zrot_solids_dict):
 
     assert len(set_zrot) == 2
@@ -119,6 +144,7 @@ def create_forces_zrot_derivative(force, set_zrot, set_solids, zrot_solids_dict)
         assert len(zrotelementsolid_0['lift']) == len(zrotelementsolid_1['lift'])
 
         dforceddir_name = "D"+force+"D"+dir
+        dforceddir_name2 = "D"+force+"Dzrot"
         forcearray_0 = zrotelementsolid_0[force]
         forcearray_1 = zrotelementsolid_1[force]
         try:
@@ -129,3 +155,5 @@ def create_forces_zrot_derivative(force, set_zrot, set_solids, zrot_solids_dict)
             dforceddir = np.divide(delta_force, np.full(len(forcearray_0),set_zrot[1]-set_zrot[0]))
             zrotelementsolid_0[dforceddir_name] = dforceddir
             zrotelementsolid_1[dforceddir_name] = dforceddir
+            zrotelementsolid_0[dforceddir_name2] = dforceddir
+            zrotelementsolid_1[dforceddir_name2] = dforceddir
