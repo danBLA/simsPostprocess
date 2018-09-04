@@ -3,6 +3,8 @@ import numpy as np
 from collections import deque
 from sim import Simulation
 import sim
+import simconfig as sc
+import shutil
 import matplotlib.pyplot as plt
 import winglet_visualize as wv
 
@@ -72,6 +74,8 @@ assert target_solid in set_solids
 sim.create_forces_derivative('yrot', 'fy', set_zrot, set_solids, zrot_solids_dict)
 sim.create_forces_derivative('yrot', 'fz', set_zrot, set_solids, zrot_solids_dict)
 sim.create_forces_zrot_derivative('fy', set_zrot, set_solids, zrot_solids_dict)
+
+newsims = sc.NewSimManager()
 
 for zrot in set_zrot:
     refobj = zrot_solids_dict[zrot][target_solid]
@@ -148,3 +152,12 @@ for zrot in set_zrot:
 
             #print("       -> start: y=%.1f, z=%.1f, dfydz=%.1f, dfzdy=%.1f, fy=%.1f, fz=%.1f"%(start_y,start_z,dfydz,dfzdy,fy,fz))
             print("  -> %s: fy=%.1f, fz=(%.1f:%.1f), rotY=%.1f, rotZ=%.1f" % (solid, arrayfy[i], arrayfz[i], arrayfz[i+1], new_y, new_z))
+            newsims[solid].add_config(0, new_y, new_z, 18.0)
+
+print("\n")
+print(newsims)
+print("\n")
+newsimsdir = "newsims"
+if os.path.exists(newsimsdir):
+    shutil.rmtree(newsimsdir)
+newsims.write(prefix=newsimsdir)
