@@ -1,4 +1,5 @@
 import numpy as np
+from collections import deque
 
 class Simulation(object):
     def __init__(self,stack):
@@ -22,8 +23,11 @@ class Simulation(object):
         self.nIterations = np.int(line.split(":")[-1].strip())
         self.force = np.array([stack[5].strip(), stack[6].strip(), stack[7].strip()], dtype=np.float64)
 
-    def has_rot(self, x=None, y=None, z=None, tolerance=np.float64(0.01)):
-        assert (x is not None or y is not None or z is not None)
+        self.refyrot = None
+        self.refzrot = None
+
+    def has_rot(self, x=None, y=None, z=None, refy=None, refz=None, tolerance=np.float64(0.01)):
+        assert (x is not None or y is not None or z is not None or refy is not None or refz is not None)
         if x is not None:
             if np.abs(np.float64(x) - self.xrot) > tolerance:
                 return False
@@ -34,6 +38,18 @@ class Simulation(object):
 
         if z is not None:
             if np.abs(np.float64(z) - self.zrot) > tolerance:
+                return False
+
+        if refy is not None:
+            if self.refyrot is None:
+                return False
+            if np.abs(np.float64(refy) - self.refyrot) > tolerance:
+                return False
+
+        if refz is not None:
+            if self.refzrot is None:
+                return False
+            if np.abs(np.float64(refz) - self.refzrot) > tolerance:
                 return False
         return True
 
@@ -47,7 +63,7 @@ class Simulation(object):
         string += "\nforce [dN]: [%s]"%(",".join(self.force))
         return string
 
-def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict):
+def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict, useref=False):
     # [zrot][solidname]
     zrot_solids_dict = dict()
     for zrot in set_zrot:
@@ -67,7 +83,10 @@ def create_forcesDict_zrot_solid(set_zrot, set_solids, simulation_dict):
         for solid,j in zip(set_solids,range(len(set_solids))):
             zrotelementsolid = zrot_solids_dict[zrot][solid]
             solidlist = simulation_dict[solid]
-            sorted_list_zrot = sorted([(sim.yrot, sim.force) for sim in solidlist if sim.has_rot(z=zrot)])
+            if useref:
+                sorted_list_zrot = sorted([(sim.yrot, sim.force) for sim in solidlist if sim.has_rot(refz=zrot)])
+            else:
+                sorted_list_zrot = sorted([(sim.yrot, sim.force) for sim in solidlist if sim.has_rot(z=zrot)])
             yrot = np.array([a[0] for a in sorted_list_zrot])
             fx = np.array([a[1][0] for a in sorted_list_zrot])
             fy = np.array([a[1][1] for a in sorted_list_zrot])
@@ -157,3 +176,70 @@ def create_forces_zrot_derivative(force, set_zrot, set_solids, zrot_solids_dict)
             zrotelementsolid_1[dforceddir_name] = dforceddir
             zrotelementsolid_0[dforceddir_name2] = dforceddir
             zrotelementsolid_1[dforceddir_name2] = dforceddir
+
+def load_from_files(filenames):
+    linesPerSim = np.uint8(8)
+
+    simulations = []
+    simulation_dict = {}
+
+    for filename in filenames:
+        with open(filename,'r') as fp:
+            nlines = np.uint32(0)
+            nsims = np.uint16(0)
+
+            stack = deque(maxlen=int(linesPerSim))
+            for line in fp:
+                stack.append(line)
+
+                nlines += 1
+
+                if stack[0].startswith("SolidFile"):
+                    nsims += 1
+                    isim = Simulation(stack)
+                    #print("\n%s"%isim)
+                    simulations.append(isim)
+                    try:
+                        simulation_dict[isim.solidgroup].append(isim)
+                    except KeyError:
+                        simulation_dict[isim.solidgroup] = [isim]
+                    stack.clear()
+
+            #print("File %s has %u lines" % (filename, nlines))
+            print("File %s has %u simulations" % (filename, nsims))
+
+    set_solids = list(set(isim.solidgroup for isim in simulations))
+    set_yrot = list(sorted(set(isim.yrot for isim in simulations)))
+    set_zrot = list(set(isim.zrot for isim in simulations))
+
+    print(set_solids)
+    print(set_yrot)
+    print(set_zrot)
+
+    return simulation_dict, set_solids, set_yrot, set_zrot
+
+def match_newsims_to_results(new_sims_conf, solids, new_sims):
+    for solid in solids:
+
+        solidconf = new_sims_conf[solid]
+        solidsims = new_sims[solid]
+        for key, confi in iter(solidconf.configdict.items()):
+            rotx = confi.xrot
+            roty = confi.yrot
+            rotz = confi.zrot
+            refroty = confi.refyrot
+            refrotz = confi.refzrot
+
+            found = False
+            for s in solidsims:
+                if s.has_rot(x=rotx,y=roty,z=rotz):
+                    found = True
+                    s.refyrot = refroty
+                    s.refzrot = refrotz
+                    print("solid sim found -> %.2f, %.2f : %.2f, %.2f" % (roty, rotz, refroty, refrotz))
+                    break
+            if not found:
+                raise ValueError()
+     #for zrot, zrotdict in iter(zrot_solids_dict):
+
+     #zrotelementsolid = zrot_solids_dict[zrot][solid]

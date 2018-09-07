@@ -1,3 +1,4 @@
+import numpy as np
 import matplotlib.pyplot as plt
 import sim
 
@@ -295,4 +296,68 @@ def plot_dragforceratio_all(set_zrot, set_solids, zrot_solids_dict):
                       fancybox=True, shadow=True, ncol=2)
 
 
+    plt.show()
+
+def plot_lift_ref_other(refsolid, refdict, ref_zrot,set_solids,zrot_solids_dict):
+    """2 subplots with Fz """
+
+    fig = plt.figure()
+    subplot=0
+
+    for zrot,i in zip(ref_zrot, range(len(ref_zrot))):
+        linetype=linestyles[i]
+        subplot += 1
+        ax = plt.subplot(2,1,subplot)
+        print("* zrot: %s"%zrot)
+        # the reference
+        j = 0
+        zrotelementsolid = refdict[zrot][refsolid]
+        refsolid_lift = zrotelementsolid['lift']
+        linecolor = colors[j]
+        print("  * solid: %s" % refsolid)
+        ax.plot(refsolid_lift, zrotelementsolid['fz'], label=refsolid, color=linecolor, linestyle=linetype)
+        # the new sims
+        for solid,j in zip(set_solids,range(1,len(set_solids)+1)):
+            zrotelementsolid = zrot_solids_dict[zrot][solid]
+            linecolor = colors[j]
+            print("  * solid: %s" % solid)
+            ax.plot(refsolid_lift, zrotelementsolid['fz'], label=solid, color=linecolor, linestyle=linetype)
+
+        ax.set_title("Ref-Zrot: %s" % zrot)
+        ax.set_xlabel('Ref-Lift [°]')
+        ax.set_ylabel('Lift [dN]')
+        ax.legend(loc="best")
+        ax.margins(0.1)
+    plt.show()
+
+def plot_drag_ref_other(refsolid, refdict, ref_zrot,set_solids,zrot_solids_dict):
+    """2 subplots with Fx """
+
+    fig = plt.figure()
+    subplot=0
+
+    for zrot,i in zip(ref_zrot, range(len(ref_zrot))):
+        linetype=linestyles[i]
+        subplot += 1
+        ax = plt.subplot(2,1,subplot)
+        print("* zrot: %s"%zrot)
+        # the reference
+        j = 0
+        zrotelementsolid = refdict[zrot][refsolid]
+        refsolid_lift = zrotelementsolid['lift']
+        linecolor = colors[j]
+        print("  * solid: %s" % refsolid)
+        ax.plot(refsolid_lift, np.absolute(zrotelementsolid['fx']), label=refsolid, color=linecolor, linestyle=linetype)
+        # the new sims
+        for solid,j in zip(set_solids,range(1,len(set_solids)+1)):
+            zrotelementsolid = zrot_solids_dict[zrot][solid]
+            linecolor = colors[j]
+            print("  * solid: %s" % solid)
+            ax.plot(refsolid_lift, np.absolute(zrotelementsolid['fx']), label=solid, color=linecolor, linestyle=linetype)
+
+        ax.set_title("Ref-Zrot: %s" % zrot)
+        ax.set_xlabel('Ref-Lift [°]')
+        ax.set_ylabel('Drag [dN]')
+        ax.legend(loc="best")
+        ax.margins(0.1)
     plt.show()
