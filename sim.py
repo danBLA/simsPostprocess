@@ -135,6 +135,7 @@ def create_dragforcelift_ratios(set_zrot, set_solids, zrot_solids_dict):
                 fz_by_fx = zrotelementsolid['fzBYfx']
                 fy_by_fx = zrotelementsolid['fyBYfx']
                 fyz_by_fx = zrotelementsolid['fyzBYfx']
+                fyz = zrotelementsolid['fyz']
             except KeyError:
                 fx = zrotelementsolid['fx']
                 fy = zrotelementsolid['fy']
@@ -145,7 +146,9 @@ def create_dragforcelift_ratios(set_zrot, set_solids, zrot_solids_dict):
                 fy_by_fx = np.divide(fy, np.abs(fx))
                 #sum_of_squares = np.add(np.square(fy), np.square(fz))
                 sum_of_squares = np.add(np.square(fy), np.square(fz))
-                fyz_by_fx = np.divide(np.sqrt(sum_of_squares), np.abs(fx))
+                fyz = np.sqrt(sum_of_squares)
+                fyz_by_fx = np.divide(fyz, np.abs(fx))
+                zrotelementsolid['fyz'] = fyz
                 zrotelementsolid['fzBYfx'] = fz_by_fx
                 zrotelementsolid['fyBYfx'] = fy_by_fx
                 zrotelementsolid['fyzBYfx']= fyz_by_fx

@@ -53,4 +53,8 @@ sim.match_newsims_to_results(newsims, set_solids2, simulation_dict2)
 zrot_solids_dict2 = sim.create_forcesDict_zrot_solid(set_zrot, set_solids2, simulation_dict2, useref=True)
 
 #wv.plot_lift_ref_other(refsolid, zrot_solids_dict, set_zrot, set_solids2, zrot_solids_dict2)
-wv.plot_drag_ref_other(refsolid, zrot_solids_dict, set_zrot, set_solids2, zrot_solids_dict2)
+#wv.plot_drag_ref_other(refsolid, zrot_solids_dict, set_zrot, set_solids2, zrot_solids_dict2)
+#wv.plot_liftangle_ref_other(refsolid, zrot_solids_dict, set_zrot, set_solids2, zrot_solids_dict2)
+
+sim.create_dragforcelift_ratios(set_zrot, set_solids, zrot_solids_dict)
+wv.plot_dragforceratio_ref_other2(refsolid , zrot_solids_dict, set_zrot, set_solids2, zrot_solids_dict2)
